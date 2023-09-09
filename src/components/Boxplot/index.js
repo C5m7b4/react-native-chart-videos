@@ -91,6 +91,12 @@ const BoxPlot = ({
       stopOpacity: 0.8,
     },
   },
+  outlier_config = {
+    radius: 5,
+    stroke: '#000',
+    strokeWidth: 1,
+    opacity: 0.5,
+  },
 }) => {
   const [yAxisLabels, setYAxisLabels] = useState([]);
   const x_margin = 50;
@@ -318,7 +324,18 @@ const BoxPlot = ({
     return {m, q1, q3, iqr, outliers, maxwo, minwo};
   };
 
-  const render_rect = (q1, q3, index, x, m, outliers, maxwo, minwo) => {
+  const render_rect = (
+    record,
+    q1,
+    q3,
+    index,
+    x,
+    m,
+    outliers,
+    maxwo,
+    minwo,
+    dayData,
+  ) => {
     const {gap_between_ticks: y_gap, yMax, y_value_gap} = calculateHeight();
     console.log('q1', q1, 'q3', q3);
     const y = (yMax - q1) * (y_gap / y_value_gap) + y_margin;
@@ -330,6 +347,7 @@ const BoxPlot = ({
       (yMax - maxwo) * (y_gap / y_value_gap) + y_margin;
     const minHorizontalLineY =
       (yMax - minwo) * (y_gap / y_value_gap) + y_margin;
+
     return (
       <G key={`rect-g-${index}`}>
         <Rect
@@ -340,6 +358,20 @@ const BoxPlot = ({
           stroke={boxStroke}
           strokeWidth={boxStrokeWidth}
           fill={useGradient ? 'url(#boxgradient)' : 'transparent'}
+          onPress={() =>
+            onPressItem({
+              record,
+              q1,
+              q3,
+              index,
+              x,
+              m,
+              outliers,
+              maxwo,
+              minwo,
+              dayData,
+            })
+          }
         />
         <Line
           x1={x - barWidth / 2}
@@ -395,7 +427,18 @@ const BoxPlot = ({
       }
     });
     const {m, q1, q3, outliers, maxwo, minwo} = gatherData(dayData);
-    return render_rect(q1, q3, index, x, m, outliers, maxwo, minwo);
+    return render_rect(
+      record,
+      q1,
+      q3,
+      index,
+      x,
+      m,
+      outliers,
+      maxwo,
+      minwo,
+      dayData,
+    );
   };
 
   const render_boxes = () => {
@@ -405,6 +448,38 @@ const BoxPlot = ({
     return uniques.map((r, i) => {
       const x = x_margin * 2 + gap_betwen_ticks * i;
       return render_box(r, i, x);
+    });
+  };
+
+  const render_outliers = () => {
+    const uniques = unique(data);
+    const {gap_betwen_ticks} = calculateWidth();
+    const {gap_between_ticks: y_gap, yMax, y_value_gap} = calculateHeight();
+    const {radius, stroke, strokeWidth, opacity} = outlier_config;
+    return uniques.map((item, index) => {
+      const x = x_margin * 2 + gap_betwen_ticks * index;
+      const dayData = [];
+      data.map(rr => {
+        if (rr[x_key] === item) {
+          dayData.push(rr);
+        }
+      });
+
+      const {outliers} = gatherData(dayData);
+      return outliers.map((o, idx) => {
+        const y = (yMax - 0) * (y_gap / y_value_gap) + y_margin;
+        return (
+          <Circle
+            key={`o-${idx}-${index}`}
+            cx={x}
+            cy={y}
+            r={radius}
+            stroke={stroke}
+            strokeWidth={strokeWidth}
+            opacity={opacity}
+          />
+        );
+      });
     });
   };
 
@@ -466,6 +541,7 @@ const BoxPlot = ({
         {data && data.length > 0 && render_y_axis_ticks()}
         {data && data.length > 0 && render_y_axis_labels()}
         {data && data.length > 0 && render_boxes()}
+        {data && data.length > 0 && render_outliers()}
       </Svg>
     </View>
   );
