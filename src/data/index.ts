@@ -18,5 +18,11 @@ export const boxData = [
   {datename: 'Mon', cashier: 8, voids: 7.68},
   {datename: 'Mon', cashier: 9, voids: 3.15},
   {datename: 'Mon', cashier: 10, voids: 9.75},
-  {datename: 'Mon', cashier: 10, voids: 9.75},
+  {datename: 'Tue', cashier: 1, voids: 1.13},
+  {datename: 'Tue', cashier: 2, voids: 6.25},
+  {datename: 'Tue', cashier: 3, voids: 3.63},
+  {datename: 'Tue', cashier: 4, voids: 1.89},
+  {datename: 'Tue', cashier: 5, voids: 18.21},
+  {datename: 'Tue', cashier: 6, voids: 7.21},
+  {datename: 'Tue', cashier: 2, voids: 9.24},
 ];
