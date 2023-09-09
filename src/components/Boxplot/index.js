@@ -40,6 +40,19 @@ const BoxPlot = ({
   axisCircleRadius = 5,
   axisCircleOpacity = 0.7,
   barWidth = 20,
+  boxStroke = '#000',
+  useGradient = true,
+  boxStrokeWidth = 1,
+  medianStroke = '#000',
+  medianStrokeWidth = 1,
+  upperLineStroke = '#000',
+  upperLineStrokeWidth = 1,
+  lowerLineSroke = '#000',
+  lowerLineStrokeWidth = 1,
+  upperBarStroke = '#000',
+  uppserBarStrokeWidth = 1,
+  lowerBarStroke = '#000',
+  lowerBarStrokeWidth = 1,
   gradient_background_config = {
     stop1: {
       offset: 0,
@@ -65,6 +78,18 @@ const BoxPlot = ({
     fill: '#000',
     fontWeight: '400',
     rotation: 0,
+  },
+  box_gradient_config = {
+    stop1: {
+      offset: '0',
+      stopColor: '#ac53c9',
+      stopOpacity: 0.3,
+    },
+    stop2: {
+      offset: '1',
+      stopColor: '#7f2e99',
+      stopOpacity: 0.8,
+    },
   },
 }) => {
   const [yAxisLabels, setYAxisLabels] = useState([]);
@@ -312,49 +337,49 @@ const BoxPlot = ({
           y={y}
           width={barWidth}
           height={-boxHeight}
-          stroke={'#000'}
-          strokeWidth={1}
-          fill={'transparent'}
+          stroke={boxStroke}
+          strokeWidth={boxStrokeWidth}
+          fill={useGradient ? 'url(#boxgradient)' : 'transparent'}
         />
         <Line
           x1={x - barWidth / 2}
           y1={lineY}
           x2={x + barWidth / 2}
           y2={lineY}
-          stroke={'#000'}
-          strokeWidth={1}
+          stroke={medianStroke}
+          strokeWidth={medianStrokeWidth}
         />
         <Line
           x1={x}
           y1={y - boxHeight}
           x2={x}
           y2={maxHorizontalLineY}
-          stroke={'#000'}
-          strokeWidth={1}
+          stroke={upperLineStroke}
+          strokeWidth={upperLineStrokeWidth}
         />
         <Line
           x1={x - barWidth / 2}
           y1={maxHorizontalLineY}
           x2={x + barWidth / 2}
           y2={maxHorizontalLineY}
-          stroke={'#000'}
-          strokeWidth={1}
+          stroke={upperBarStroke}
+          strokeWidth={uppserBarStrokeWidth}
         />
         <Line
           x1={x}
           y1={y}
           x2={x}
           y2={minHorizontalLineY}
-          stroke={'#000'}
-          strokeWidth={1}
+          stroke={lowerLineSroke}
+          strokeWidth={lowerLineStrokeWidth}
         />
         <Line
           x1={x - barWidth / 2}
           y1={minHorizontalLineY}
           x2={x + barWidth / 2}
           y2={minHorizontalLineY}
-          stroke={'#000'}
-          strokeWidth={1}
+          stroke={lowerBarStroke}
+          strokeWidth={lowerBarStrokeWidth}
         />
       </G>
     );
@@ -396,6 +421,24 @@ const BoxPlot = ({
     <View style={mainContainer}>
       <Svg height="100%" width="100%" style={svgContainer}>
         <Defs>
+          <LinearGradient
+            id="boxgradient"
+            gradientUnits="userSpaceOnUse"
+            x1={0}
+            y1={0}
+            x2={0}
+            y2={containerHeight}>
+            <Stop
+              offset={box_gradient_config.stop1.offset}
+              stopColor={box_gradient_config.stop1.stopColor}
+              stopOpacity={box_gradient_config.stop1.stopOpacity}
+            />
+            <Stop
+              offset={box_gradient_config.stop2.offset}
+              stopColor={box_gradient_config.stop2.stopColor}
+              stopOpacity={box_gradient_config.stop2.stopOpacity}
+            />
+          </LinearGradient>
           <LinearGradient
             id="gradientback"
             gradientUnits="userSpaceOnUse"
