@@ -27,6 +27,7 @@ const BoxPlot = ({
   x_key = '',
   y_key = '',
   onPressItem,
+  predicate,
   height: containerHeight = 300,
   width: containerWidth = SCREEN_WIDTH - 50,
   backgroundColor = 'transparent',
@@ -53,6 +54,7 @@ const BoxPlot = ({
   uppserBarStrokeWidth = 1,
   lowerBarStroke = '#000',
   lowerBarStrokeWidth = 1,
+  skipYAxisLabels = 2,
   gradient_background_config = {
     stop1: {
       offset: 0,
@@ -96,6 +98,7 @@ const BoxPlot = ({
     stroke: '#000',
     strokeWidth: 1,
     opacity: 0.5,
+    fill: 'red',
   },
 }) => {
   const [yAxisLabels, setYAxisLabels] = useState([]);
@@ -127,7 +130,7 @@ const BoxPlot = ({
 
     const uniques = unique(data);
     const chartWidth = containerWidth - x_margin * 2;
-    const gap_betwen_ticks = chartWidth / (uniques.length / 2);
+    const gap_betwen_ticks = chartWidth / (uniques.length + 1);
     return {
       chartWidth,
       gap_betwen_ticks,
@@ -269,19 +272,21 @@ const BoxPlot = ({
   const render_y_axis_ticks = () => {
     const {gap_between_ticks} = calculateHeight();
     return yAxisLabels.map((item, index) => {
-      const y = containerHeight - y_margin - gap_between_ticks * index;
-      return (
-        <G key={`y_axis_ticks_${index}`}>
-          <Line
-            x1={x_margin}
-            y1={y}
-            x2={x_margin - 10}
-            y2={y}
-            strokeWidth={axisStrokeWidth}
-            stroke={axisColor}
-          />
-        </G>
-      );
+      if (index % skipYAxisLabels === 0) {
+        const y = containerHeight - y_margin - gap_between_ticks * index;
+        return (
+          <G key={`y_axis_ticks_${index}`}>
+            <Line
+              x1={x_margin}
+              y1={y}
+              x2={x_margin - 10}
+              y2={y}
+              strokeWidth={axisStrokeWidth}
+              stroke={axisColor}
+            />
+          </G>
+        );
+      }
     });
   };
 
@@ -291,24 +296,26 @@ const BoxPlot = ({
       y_axis_config;
     const x = x_margin - 10;
     return yAxisLabels.map((item, index) => {
-      const y = containerHeight - y_margin - gap_between_ticks * index;
-      const data_points = data.length - 1;
-      const textValue = min + (yMax / data_points) * index;
-      return (
-        <G key={`y_axis_labels_${index}`}>
-          <SvgText
-            x={x}
-            y={y + fontSize / 3}
-            origin={`${x}, ${y}`}
-            rotation={rotation}
-            textAnchor={textAnchor}
-            fontWeight={fontWeight}
-            fontSize={fontSize}
-            fill={fontColor}>
-            {textValue.toFixed(0)}
-          </SvgText>
-        </G>
-      );
+      if (index % skipYAxisLabels === 0) {
+        const y = containerHeight - y_margin - gap_between_ticks * index;
+        const data_points = data.length - 1;
+        const textValue = min + (yMax / data_points) * index;
+        return (
+          <G key={`y_axis_labels_${index}`}>
+            <SvgText
+              x={x}
+              y={y + fontSize / 3}
+              origin={`${x}, ${y}`}
+              rotation={rotation}
+              textAnchor={textAnchor}
+              fontWeight={fontWeight}
+              fontSize={fontSize}
+              fill={fontColor}>
+              {textValue.toFixed(0)}
+            </SvgText>
+          </G>
+        );
+      }
     });
   };
 
@@ -337,9 +344,7 @@ const BoxPlot = ({
     dayData,
   ) => {
     const {gap_between_ticks: y_gap, yMax, y_value_gap} = calculateHeight();
-    console.log('q1', q1, 'q3', q3);
     const y = (yMax - q1) * (y_gap / y_value_gap) + y_margin;
-    console.log('y', y);
     const height = q3 - q1;
     const boxHeight = height * (y_gap / y_value_gap);
     const lineY = (yMax - m) * (y_gap / y_value_gap) + y_margin;
@@ -347,6 +352,12 @@ const BoxPlot = ({
       (yMax - maxwo) * (y_gap / y_value_gap) + y_margin;
     const minHorizontalLineY =
       (yMax - minwo) * (y_gap / y_value_gap) + y_margin;
+
+    let predicateResult = null;
+    if (predicate) {
+      predicateResult = predicate(dayData);
+      console.log('predicateResult', predicateResult.length);
+    }
 
     return (
       <G key={`rect-g-${index}`}>
@@ -357,7 +368,13 @@ const BoxPlot = ({
           height={-boxHeight}
           stroke={boxStroke}
           strokeWidth={boxStrokeWidth}
-          fill={useGradient ? 'url(#boxgradient)' : 'transparent'}
+          fill={
+            useGradient
+              ? predicateResult.length > 0
+                ? 'url(#danger)'
+                : 'url(#boxgradient)'
+              : 'transparent'
+          }
           onPress={() =>
             onPressItem({
               record,
@@ -370,6 +387,7 @@ const BoxPlot = ({
               maxwo,
               minwo,
               dayData,
+              predicateResult,
             })
           }
         />
@@ -455,7 +473,7 @@ const BoxPlot = ({
     const uniques = unique(data);
     const {gap_betwen_ticks} = calculateWidth();
     const {gap_between_ticks: y_gap, yMax, y_value_gap} = calculateHeight();
-    const {radius, stroke, strokeWidth, opacity} = outlier_config;
+    const {radius, stroke, strokeWidth, opacity, fill} = outlier_config;
     return uniques.map((item, index) => {
       const x = x_margin * 2 + gap_betwen_ticks * index;
       const dayData = [];
@@ -467,7 +485,7 @@ const BoxPlot = ({
 
       const {outliers} = gatherData(dayData);
       return outliers.map((o, idx) => {
-        const y = (yMax - 0) * (y_gap / y_value_gap) + y_margin;
+        const y = (yMax - o) * (y_gap / y_value_gap) + y_margin;
         return (
           <Circle
             key={`o-${idx}-${index}`}
@@ -477,6 +495,7 @@ const BoxPlot = ({
             stroke={stroke}
             strokeWidth={strokeWidth}
             opacity={opacity}
+            fill={fill}
           />
         );
       });
@@ -513,6 +532,10 @@ const BoxPlot = ({
               stopColor={box_gradient_config.stop2.stopColor}
               stopOpacity={box_gradient_config.stop2.stopOpacity}
             />
+          </LinearGradient>
+          <LinearGradient id="danger" x1={0} y1={0} x2={0} y2={containerHeight}>
+            <Stop offset="0" stopColor={'red'} stopOpacity={0.3} />
+            <Stop offset="1" stopColor={'red'} stopOpacity={0.8} />
           </LinearGradient>
           <LinearGradient
             id="gradientback"
