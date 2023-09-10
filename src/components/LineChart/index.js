@@ -42,7 +42,7 @@ const LineChart = ({
   lineGradient = true,
   showHorizontalLines = false,
   horizontalLineOpacity = 0.2,
-  showVerticalLines = false,
+  showVerticalLines = true,
   verticalLineOpacity = 0.2,
   showTooltips = true,
   gradient_background_config = {
@@ -62,7 +62,7 @@ const LineChart = ({
     textAnchor: 'middle',
     fill: '#000',
     fontWeight: '400',
-    rotation: 0,
+    rotation: -45,
   },
   y_axis_config = {
     fontSize: 12,
