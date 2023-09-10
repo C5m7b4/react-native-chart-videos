@@ -5,15 +5,18 @@ import Svg, {
   Circle,
   Line,
   Rect,
+  Path,
   LinearGradient,
   Defs,
   Stop,
   Text as SvgText,
 } from 'react-native-svg';
-import {quickSort} from '../../utils';
+import {newShade, quickSort} from '../../utils';
 
 const AnimatedRect = Animated.createAnimatedComponent(Rect);
 const AnimatedSvgText = Animated.createAnimatedComponent(SvgText);
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedLine = Animated.createAnimatedComponent(Line);
 
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
 
@@ -36,10 +39,13 @@ const Barchart = ({
   axisCircleOpacity = 0.7,
   barWidth = 20,
   animated = true,
-  barColor = 'green',
+  barColor = '#3172de',
   barOpacity = 0.8,
   useBarGradient = true,
   showTooltips = true,
+  threeD = true,
+  threeDWidthX = 2,
+  threeDWidthY = 5,
   tooltip_config = {
     tooltipFill: '#000',
     tooltipBorderRadius: 7,
@@ -299,9 +305,58 @@ const Barchart = ({
         useNativeDriver: true,
       }).start();
 
+      let animatedOpacity = new Animated.Value(0);
+      Animated.timing(animatedOpacity, {
+        toValue: 0.5,
+        delay: 500,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+
+      let animatedLineOpacity = new Animated.Value(0);
+      Animated.timing(animatedLineOpacity, {
+        toValue: 0.2,
+        delay: 500,
+        duration: 500,
+        useNativeDriver: true,
+      }).start();
+
+      let barShadowColor = newShade(barColor, 20);
+
       if (useBarGradient) {
+        barShadowColor = newShade(bar_gradient_config.stop1.stopColor, 20);
         return (
           <G key={`bars-${index}`}>
+            {threeD ? (
+              <AnimatedPath
+                d={`
+                  M ${x - barWidth / 2}, ${y}
+                  L ${x - barWidth - threeDWidthX}, ${y - threeDWidthY}
+                  L ${x - barWidth - threeDWidthX}, ${
+                  y - threeDWidthY - barHeight
+                }
+                  L ${x + barWidth - threeDWidthX * 10} , ${
+                  y - threeDWidthY - barHeight
+                }
+              L ${x + barWidth - threeDWidthX * 5},  ${y - barHeight}
+              L ${x + barWidth / 2}, ${y}
+                Z`}
+                strokeWidth={0}
+                fill={barShadowColor}
+                opacity={animatedOpacity}
+              />
+            ) : null}
+            {threeD ? (
+              <AnimatedLine
+                x1={x - barWidth / 2}
+                y1={y - barHeight}
+                x2={x - barWidth - threeDWidthX}
+                y2={y - barHeight - threeDWidthY}
+                strokeWidth={1}
+                stroke={'#000'}
+                opacity={animatedLineOpacity}
+              />
+            ) : null}
             <AnimatedRect
               x={x - barWidth / 2}
               y={y}
@@ -316,6 +371,36 @@ const Barchart = ({
       } else {
         return (
           <G key={`bars-${index}`}>
+            {threeD ? (
+              <AnimatedPath
+                d={`
+                  M ${x - barWidth / 2}, ${y}
+                  L ${x - barWidth - threeDWidthX}, ${y - threeDWidthY}
+                  L ${x - barWidth - threeDWidthX}, ${
+                  y - threeDWidthY - barHeight
+                }
+                  L ${x + barWidth - threeDWidthX * 10} , ${
+                  y - threeDWidthY - barHeight
+                }
+              L ${x + barWidth - threeDWidthX * 5},  ${y - barHeight}
+              L ${x + barWidth / 2}, ${y}
+                Z`}
+                strokeWidth={0}
+                fill={barShadowColor}
+                opacity={animatedOpacity}
+              />
+            ) : null}
+            {threeD ? (
+              <AnimatedLine
+                x1={x - barWidth / 2}
+                y1={y - barHeight}
+                x2={x - barWidth - threeDWidthX}
+                y2={y - barHeight - threeDWidthY}
+                strokeWidth={1}
+                stroke={'#000'}
+                opacity={animatedLineOpacity}
+              />
+            ) : null}
             <AnimatedRect
               x={x - barWidth / 2}
               y={y}
